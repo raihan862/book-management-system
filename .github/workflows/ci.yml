@@ -1,0 +1,23 @@
+name: stage
+on: push
+jobs:
+  explore:
+    runs-on: ubuntu-latest
+    steps:
+      - name: where i am
+        run: whoami
+
+      - name: whats on the machine
+        run: |
+          pwd
+          cat /etc/os-release
+          node -version || echo "no node"
+          echo "Hello from steps 3" -> myfile.txt
+          df -h
+
+      - name: create another file
+        run: echo "Hi from step 5" > myfile2.txt
+      - name: merge files
+        run: |
+          cat myfile.txt myfile2.txt > myfile3.txt
+          cat myfile3.txt
