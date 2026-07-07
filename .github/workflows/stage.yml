@@ -1,0 +1,25 @@
+name: stage 2
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  create-files:
+    runs-on: ubuntu-latest
+    steps:
+      - name: show working directory
+        run: pwd
+
+      - name: create file
+        run: |
+          echo "Hello from step 1" > shared.txt
+          cat shared.txt
+  read-file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: show working directory
+        run: pwd
+      - name: read file
+        run: |
+          cat shared.txt || echo "shared.txt not found"
