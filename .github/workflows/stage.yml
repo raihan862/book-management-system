@@ -30,3 +30,12 @@ jobs:
         run: |
           cat shared.txt || echo "shared.txt not found"
           echo "Received content from previous job: ${{ needs.create-files.outputs.file-content}}"
+
+  example-action:
+    runs-on: ububtu-latest
+    steps:
+      - name: use local action
+        id: my-action
+        uses: ./local-action/hello-packer
+        with:
+          username: 'Rayhan'

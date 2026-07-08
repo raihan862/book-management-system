@@ -1,0 +1,37 @@
+name: 'System Reporter and file packer'
+description: 'This action reports system information and creates a file with the reported data.'
+
+inputs:
+  username:
+    description: 'who is running the  pipeline '
+    required: true
+    default: 'CI-Runner'
+  target-file:
+    description: 'The name of the file to create with system information.'
+    required: true
+    default: 'report.txt'
+outputs:
+  summary-preview:
+    description: 'First line of generated report file for quick preview.'
+    value: ${{ steps.generate-report.outputs.preview }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Print Welcome greeting
+      shell: bash
+      run: |
+        echo "Starting custom action run execution.."
+        echo "Triggered by developer user: ${{ inputs.username }}"
+    - name: collect spec and write files
+      id: generate-report
+      shell: bash
+      run: |
+        echo "=== PIPELINE REPORT ===" > "${{ inputs.target-file }}"
+        echo "Runner OS: $RUNNER_OS" >> "${{ inputs.target-file }}"
+        echo "Trigger Event: $GITHUB_EVENT_NAME" >> "${{ inputs.target-file }}"
+        echo "Timestamp: $(date)" >> "${{ inputs.target-file }}"
+
+        # Set an output variable for our custom action block
+        FIRST_LINE=$(head -n 1 "${{ inputs.target-file }}")
+        echo "preview=$FIRST_LINE" >> "$GITHUB_OUTPUT"
