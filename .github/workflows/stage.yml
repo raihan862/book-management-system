@@ -32,8 +32,10 @@ jobs:
           echo "Received content from previous job: ${{ needs.create-files.outputs.file-content}}"
 
   example-action:
-    runs-on: ububtu-latest
+    runs-on: ubuntu-latest
     steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
       - name: use local action
         id: my-action
         uses: ./local-action/hello-packer
