@@ -19,9 +19,6 @@ export class AuthorsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createAuthorDto: CreateAuthorDto): Promise<IAuthor> {
-
-    
-
     const data = {
       firstName: createAuthorDto.firstName,
       lastName: createAuthorDto.lastName,

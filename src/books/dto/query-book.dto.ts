@@ -1,6 +1,11 @@
 import { IsOptional, IsString, IsInt, Min, Max, IsUUID } from 'class-validator';
 import { Type } from 'class-transformer';
-import { DEFAULT_PAGE, DEFAULT_LIMIT, MAX_LIMIT, MIN_LIMIT } from '../../common/constants/pagination.constants';
+import {
+  DEFAULT_PAGE,
+  DEFAULT_LIMIT,
+  MAX_LIMIT,
+  MIN_LIMIT,
+} from '../../common/constants/pagination.constants';
 
 export class QueryBookDto {
   @IsOptional()
