@@ -5,7 +5,6 @@ import { PrismaService } from '../prisma/prisma.service';
 
 describe('AuthorsService', () => {
   let service: AuthorsService;
-  let prisma: PrismaService;
 
   const mockPrismaService = {
     author: {
@@ -43,7 +42,6 @@ describe('AuthorsService', () => {
     }).compile();
 
     service = module.get<AuthorsService>(AuthorsService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {
@@ -144,7 +142,7 @@ describe('AuthorsService', () => {
       mockPrismaService.author.findMany.mockResolvedValue(authors);
       mockPrismaService.author.count.mockResolvedValue(1);
 
-      const result = await service.findAll(query);
+      await service.findAll(query);
 
       expect(mockPrismaService.author.findMany).toHaveBeenCalledWith({
         where: {

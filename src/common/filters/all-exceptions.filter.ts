@@ -35,8 +35,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const errorResponse = this.buildErrorResponse(exception, request);
 
+    const messageStr = Array.isArray(errorResponse.message)
+      ? errorResponse.message.join(', ')
+      : errorResponse.message;
+
     this.logger.error(
-      `${errorResponse.error} [${request.method}] ${request.url} - ${errorResponse.message}`,
+      `${errorResponse.error} [${request.method}] ${request.url} - ${messageStr}`,
       exception instanceof Error ? exception.stack : '',
     );
 
@@ -56,8 +60,22 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     // Handle Prisma Errors
-    if (this.isPrismaError(exception)) {
+    if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       return this.handlePrismaError(exception, timestamp, path);
+    }
+
+    if (this.isPrismaError(exception)) {
+      return {
+        success: false,
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message:
+          exception instanceof Error
+            ? exception.message
+            : 'Database error occurred',
+        error: 'Database Error',
+        timestamp,
+        path,
+      };
     }
 
     // Handle unknown errors
@@ -81,17 +99,29 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (typeof exceptionResponse === 'string') {
       message = exceptionResponse;
       error = HttpStatus[status] || 'Error';
-    } else {
-      const responseObj = exceptionResponse as any;
+    } else if (
+      typeof exceptionResponse === 'object' &&
+      exceptionResponse !== null
+    ) {
+      const responseObj = exceptionResponse as Record<string, unknown>;
 
-      // Handle validation errors (returns array of messages)
-      if (Array.isArray(responseObj.message)) {
-        message = responseObj.message;
+      const responseMessage = responseObj['message'];
+      if (Array.isArray(responseMessage)) {
+        message = responseMessage.map((m) => String(m));
+      } else if (typeof responseMessage === 'string') {
+        message = responseMessage;
       } else {
-        message = responseObj.message || exception.message;
+        message = exception.message;
       }
 
-      error = responseObj.error || HttpStatus[status] || 'Error';
+      const responseError = responseObj['error'];
+      error =
+        typeof responseError === 'string'
+          ? responseError
+          : HttpStatus[status] || 'Error';
+    } else {
+      message = exception.message;
+      error = HttpStatus[status] || 'Error';
     }
 
     return {
@@ -108,13 +138,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
    * Handle Prisma database errors
    */
   private handlePrismaError(
-    exception: any,
+    exception: Prisma.PrismaClientKnownRequestError,
     timestamp: string,
     path: string,
   ): ApiErrorResponse {
     // P2002: Unique constraint violation
     if (exception.code === 'P2002') {
-      const field = exception.meta?.target?.[0] || 'field';
+      const meta = exception.meta;
+      const target = meta?.['target'];
+      const field =
+        (Array.isArray(target) && typeof target[0] === 'string'
+          ? target[0]
+          : null) || 'field';
       return {
         success: false,
         statusCode: HttpStatus.CONFLICT,
@@ -139,7 +174,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     // P2003: Foreign key constraint failed
     if (exception.code === 'P2003') {
-      const field = exception.meta?.field_name || 'related record';
+      const meta = exception.meta;
+      const fieldName = meta?.['field_name'];
+      const field =
+        typeof fieldName === 'string' ? fieldName : 'related record';
       return {
         success: false,
         statusCode: HttpStatus.BAD_REQUEST,

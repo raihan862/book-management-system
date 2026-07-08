@@ -15,12 +15,13 @@ export class LoggingInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest<Request>();
-    const { method, url, body } = request;
+    const { method, url } = request;
+    const body = request.body as Record<string, unknown> | undefined;
     const now = Date.now();
 
     this.logger.log(`Incoming Request: ${method} ${url}`);
 
-    if (Object.keys(body || {}).length > 0) {
+    if (body && Object.keys(body).length > 0) {
       this.logger.debug(`Request Body: ${JSON.stringify(body)}`);
     }
 
@@ -32,10 +33,12 @@ export class LoggingInterceptor implements NestInterceptor {
             `Outgoing Response: ${method} ${url} - ${responseTime}ms`,
           );
         },
-        error: (error) => {
+        error: (error: unknown) => {
           const responseTime = Date.now() - now;
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
           this.logger.error(
-            `Error Response: ${method} ${url} - ${responseTime}ms - ${error.message}`,
+            `Error Response: ${method} ${url} - ${responseTime}ms - ${errorMessage}`,
           );
         },
       }),
