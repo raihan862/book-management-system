@@ -10,56 +10,64 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref || github.event.pull_request.number}}
   cancel-in-progress: true
 jobs:
-  lint:
+  demo:
     runs-on: ubuntu-latest
+    env:
+      MY_KEY: ${{ secrets.MY_KEY }}
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: print my key
+        run: echo " $MY_KEY"
+# jobs:
+#   lint:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: 'yarn'
-      - name: install dep
-        run: |
-          yarn install --frozen-lockfile
-      - name: run lint
-        run: yarn eslint "{src,apps,libs,test}/**/*.ts"
+#       - name: Set up Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '24'
+#           cache: 'yarn'
+#       - name: install dep
+#         run: |
+#           yarn install --frozen-lockfile
+#       - name: run lint
+#         run: yarn eslint "{src,apps,libs,test}/**/*.ts"
 
-  test-run:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-      - name: setup
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: 'yarn'
-      - name: install
-        run: yarn install --frozen-lockfile
-      - name: run test
-        run: yarn test
+#   test-run:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: checkout
+#         uses: actions/checkout@v4
+#       - name: setup
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '24'
+#           cache: 'yarn'
+#       - name: install
+#         run: yarn install --frozen-lockfile
+#       - name: run test
+#         run: yarn test
 
-  build:
-    runs-on: ubuntu-latest
-    needs: [lint, test-run]
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-      - name: setup
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: 'yarn'
-      - name: install
-        run: yarn install --frozen-lockfile
-      - name: build
-        run: yarn build
-      - name: upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: dist/
-          retention-days: 2
+#   build:
+#     runs-on: ubuntu-latest
+#     needs: [lint, test-run]
+#     steps:
+#       - name: checkout
+#         uses: actions/checkout@v4
+#       - name: setup
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '24'
+#           cache: 'yarn'
+#       - name: install
+#         run: yarn install --frozen-lockfile
+#       - name: build
+#         run: yarn build
+#       - name: upload build artifacts
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: build-artifacts
+          # path: dist/
+          # retention-days: 2
